@@ -1,8 +1,8 @@
 local WIDTH = 640
 local HEIGHT = 480
 
-local t = 0.0
-local ty = 1000.0
+local t = 0
+local ty = 5000
 local canvas
 
 function love.load()
@@ -32,18 +32,25 @@ function drawGraph()
   t = t + 0.01
 end
 
+local tz = 0
 function drawTexture()
-  local scale = 1.01
-  for x = 1, WIDTH do
-	for y = 1, HEIGHT do
-	  local value = love.math.noise((x + t) * scale, y * scale)
-
-	  love.graphics.setColor(value, value, value, 1)
-	  love.graphics.points(x, y)
-	end
+  local scale = 0.02
+  for x = 1, WIDTH - 2, 2 do
+    for y = 1, HEIGHT - 2, 2 do
+      local xscaled, yscaled = x * scale, y * scale
+      -- local rvalue = love.math.noise(xscaled, yscaled, tz)
+      -- local gvalue = love.math.noise(xscaled + 5000, yscaled + 5000, tz)
+      -- local bvalue = love.math.noise(xscaled + 10000, yscaled + 10000, tz)
+      --
+      -- love.graphics.setColor(rvalue, gvalue, bvalue, 1)
+      
+      local value = love.math.noise(xscaled, yscaled, tz)
+      love.graphics.setColor(value, value, value, 1)
+      love.graphics.rectangle("fill", x, y, 2, 2)
+    end
   end
 
-  t = t + 1
+  tz = tz + scale
 end
 
 function drawCircleWalker()
@@ -59,9 +66,44 @@ function drawCircleWalker()
   ty = ty + 0.01
 end
 
+local circle = {
+  x = WIDTH / 2,
+  y = HEIGHT / 2,
+  r = 20,
+}
+
+local stepSize = 10
+
+function drawCircleStepWalker()
+  local xstep = 2 * (love.math.noise(t) - 0.5) * stepSize
+  local ystep = 2 * (love.math.noise(t + 10000) - 0.5) * stepSize
+
+  circle.x = circle.x + xstep
+  circle.y = circle.y + ystep
+
+  if circle.x + circle.r < 0 then
+    circle.x = WIDTH + circle.r - 1
+  elseif circle.x - circle.r > WIDTH then
+    circle.x = - circle.r + 1
+  end
+
+  if circle.y + circle.r < 0 then
+    circle.y = HEIGHT + circle.r - 1
+  elseif circle.y - circle.r > HEIGHT then
+    circle.y = -circle.r + 1
+  end
+
+  love.graphics.setColor(0.2, 0.2, 0.2, 1)
+  love.graphics.circle("fill", circle.x, circle.y, circle.r + 1)
+  love.graphics.setColor(0.3, 0.3, 0.3, 1)
+  love.graphics.circle("fill", circle.x, circle.y, circle.r)
+
+  t = t + 0.01
+end
+
 function love.draw()
   love.graphics.setCanvas(canvas)
-  drawCircleWalker()
+  drawCircleStepWalker()
   love.graphics.setCanvas()
   love.graphics.setBlendMode("alpha", "premultiplied")
 
